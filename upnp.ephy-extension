@@ -1,0 +1,10 @@
+[Epiphany Extension]
+Name=UPnP
+Description=UPnP
+Authors=Ross Burton <ross@openedhand.com>
+Version=1
+URL=http://www.burtonini.com/
+
+[Loader]
+Type=shlib
+Library=/home/ross/Local/mess/23/ephy-gupnp/libupnp.so

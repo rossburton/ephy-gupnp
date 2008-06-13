@@ -1,6 +1,6 @@
 [Epiphany Extension]
-Name=UPnP
-Description=UPnP
+Name=UPnP Sites
+Description=Add UPnP devices with web interfaces in Nearby Sites
 Authors=Ross Burton <ross@openedhand.com>
 Version=1
 URL=http://www.burtonini.com/

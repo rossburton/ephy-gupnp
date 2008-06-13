@@ -7,5 +7,5 @@ URL=http://www.burtonini.com/
 
 [Loader]
 Type=shlib
-Library=/home/ross/Local/mess/23/ephy-gupnp/libupnp.so
+Library=%EXTENSION_DIR%/%LIBRARY%
 Resident=true

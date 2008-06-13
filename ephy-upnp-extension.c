@@ -102,12 +102,29 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
 }
 
 static void
+ephy_upnp_extension_dispose (GObject *object)
+{
+  EphyUpnpExtension *extension = EPHY_UPNP_EXTENSION (object);
+  
+  if (extension->priv->cp) {
+    g_object_unref (extension->priv->cp);
+    extension->priv->cp = NULL;
+  }
+
+  if (extension->priv->context) {
+    g_object_unref (extension->priv->context);
+    extension->priv->context = NULL;
+  }
+
+  G_OBJECT_CLASS (parent_class)->dispose (object);
+}
+
+static void
 ephy_upnp_extension_finalize (GObject *object)
 {
   EphyUpnpExtension *extension = EPHY_UPNP_EXTENSION (object);
   
-  g_object_unref (extension->priv->cp);
-  g_object_unref (extension->priv->context);
+  g_hash_table_destroy (extension->priv->device_hash);
   
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
@@ -124,6 +141,7 @@ ephy_upnp_extension_class_init (EphyUpnpExtensionClass *klass)
   
   parent_class = g_type_class_peek_parent (klass);
   
+  object_class->dispose = ephy_upnp_extension_dispose;
   object_class->finalize = ephy_upnp_extension_finalize;
   
   g_type_class_add_private (object_class, sizeof (EphyUpnpExtensionPrivate));

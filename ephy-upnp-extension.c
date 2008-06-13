@@ -41,13 +41,24 @@ static GObjectClass *parent_class = NULL;
 static GType type = 0;
 
 static void
+node_take_property_string (EphyNode *node, guint prop, char *string)
+{
+  GValue value = {0,};
+  
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_take_string (&value, string);
+  ephy_node_set_property (node, prop, &value);
+  g_value_unset (&value);
+}
+
+static void
 device_available_cb (GUPnPControlPoint *cp,
                      GUPnPDeviceProxy *proxy,
                      EphyUpnpExtension *extension)
 {
   EphyUpnpExtensionPrivate *priv;
   GUPnPDeviceInfo *info;
-  char *url, *name;
+  char *url;
   EphyNode *node;
   
   priv = extension->priv;
@@ -63,17 +74,10 @@ device_available_cb (GUPnPControlPoint *cp,
   
   node = ephy_node_new (ephy_node_get_db (priv->local));
   ephy_node_set_is_drag_source (node, FALSE);
-  ephy_node_set_property_string (node, EPHY_NODE_BMK_PROP_LOCATION, url);
-  g_free (url);
-  
-  name = gupnp_device_info_get_friendly_name (info);
-  ephy_node_set_property_string (node,
-                                 EPHY_NODE_BMK_PROP_TITLE,
-                                 name);
-  g_free (name);
-  ephy_node_set_property_boolean (node,
-                                  EPHY_NODE_BMK_PROP_IMMUTABLE,
-                                  TRUE);
+  node_take_property_string (node, EPHY_NODE_BMK_PROP_LOCATION, url);  
+  node_take_property_string (node, EPHY_NODE_BMK_PROP_TITLE,
+                             gupnp_device_info_get_friendly_name (info));
+  ephy_node_set_property_boolean (node, EPHY_NODE_BMK_PROP_IMMUTABLE, TRUE);
   
   ephy_node_add_child (priv->bookmarks, node);
   ephy_node_add_child (priv->local, node);

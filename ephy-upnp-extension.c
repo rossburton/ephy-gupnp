@@ -79,6 +79,20 @@ device_available_cb (GUPnPControlPoint *cp,
 }
 
 static void
+device_unavailable_cb (GUPnPControlPoint *cp,
+                       GUPnPDeviceProxy *proxy,
+                       EphyUpnpExtension *extension)
+{
+  EphyUpnpExtensionPrivate *priv;
+  GUPnPDeviceInfo *info;
+
+  priv = GET_PRIVATE (extension);
+  info = GUPNP_DEVICE_INFO (proxy);
+
+  g_hash_table_remove (priv->device_hash, gupnp_device_info_get_udn (info));
+}
+
+static void
 ephy_upnp_extension_init (EphyUpnpExtension *extension)
 {
   EphyUpnpExtensionPrivate *priv;
@@ -91,10 +105,16 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
 
   priv->context = gupnp_context_new (NULL, NULL, 0, NULL);
   priv->cp = gupnp_control_point_new (priv->context, GSSDP_ALL_RESOURCES);
+
   g_signal_connect (priv->cp,
                     "device-proxy-available",
                     G_CALLBACK (device_available_cb),
                     extension);
+  g_signal_connect (priv->cp,
+                    "device-proxy-unavailable",
+                    G_CALLBACK (device_unavailable_cb),
+                    extension);
+
   gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (priv->cp), TRUE);
   
   shell = ephy_shell_get_default ();

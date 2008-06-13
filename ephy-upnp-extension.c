@@ -75,7 +75,7 @@ device_available_cb (GUPnPControlPoint *cp,
   ephy_node_add_child (ephy_bookmarks_get_bookmarks (extension->priv->bookmarks), node);
   ephy_node_add_child (ephy_bookmarks_get_local (extension->priv->bookmarks), node);
 
-  g_hash_table_insert (priv->device_hash, (gpointer)gupnp_device_info_get_udn (info), proxy);
+  g_hash_table_insert (priv->device_hash, g_strdup (gupnp_device_info_get_udn (info)), node);
 }
 
 static void
@@ -86,7 +86,8 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
   
   priv = extension->priv = GET_PRIVATE (extension);
   
-  priv->device_hash = g_hash_table_new (g_str_hash, g_str_equal);
+  priv->device_hash = g_hash_table_new_full
+    (g_str_hash, g_str_equal, g_free, (GDestroyNotify)ephy_node_unref);
 
   priv->context = gupnp_context_new (NULL, NULL, 0, NULL);
   priv->cp = gupnp_control_point_new (priv->context, GSSDP_ALL_RESOURCES);
@@ -94,7 +95,6 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
                     "device-proxy-available",
                     G_CALLBACK (device_available_cb),
                     extension);
-  /* TODO:connect disconnect */
   gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (priv->cp), TRUE);
   
   shell = ephy_shell_get_default ();
@@ -124,6 +124,8 @@ ephy_upnp_extension_finalize (GObject *object)
 {
   EphyUpnpExtension *extension = EPHY_UPNP_EXTENSION (object);
   
+  /* This will free the keys (UDN strings) and unref the values (EphyNodes),
+     which will cause them to be removed from the tree. */
   g_hash_table_destroy (extension->priv->device_hash);
   
   G_OBJECT_CLASS (parent_class)->finalize (object);

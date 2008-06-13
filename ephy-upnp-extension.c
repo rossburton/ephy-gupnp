@@ -44,7 +44,7 @@ device_available_cb (GUPnPControlPoint *cp,
   GUPnPDeviceInfo *info;
   char *url, *name;
 
-  priv = GET_PRIVATE (extension);
+  priv = extension->priv;
   info = GUPNP_DEVICE_INFO (proxy);
 
   /* Skip devices we've seen already */
@@ -86,7 +86,7 @@ device_unavailable_cb (GUPnPControlPoint *cp,
   EphyUpnpExtensionPrivate *priv;
   GUPnPDeviceInfo *info;
 
-  priv = GET_PRIVATE (extension);
+  priv = extension->priv;
   info = GUPNP_DEVICE_INFO (proxy);
 
   g_hash_table_remove (priv->device_hash, gupnp_device_info_get_udn (info));

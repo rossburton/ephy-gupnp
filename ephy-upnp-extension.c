@@ -26,10 +26,15 @@
 #define GET_PRIVATE(object) (G_TYPE_INSTANCE_GET_PRIVATE ((object), EPHY_TYPE_UPNP_EXTENSION, EphyUpnpExtensionPrivate))
 
 struct _EphyUpnpExtensionPrivate {
+  /* Epiphany objects */
+  EphyBookmarks *eb;
+  EphyNode *bookmarks;
+  EphyNode *local;
+
+  /* GUPnP objects */
   GHashTable *device_hash;
   GUPnPContext *context;
   GUPnPControlPoint *cp;
-  EphyBookmarks *bookmarks;
 };
 
 static GObjectClass *parent_class = NULL;
@@ -43,10 +48,11 @@ device_available_cb (GUPnPControlPoint *cp,
   EphyUpnpExtensionPrivate *priv;
   GUPnPDeviceInfo *info;
   char *url, *name;
-
+  EphyNode *node;
+  
   priv = extension->priv;
   info = GUPNP_DEVICE_INFO (proxy);
-
+  
   /* Skip devices we've seen already */
   if (g_hash_table_lookup (priv->device_hash, gupnp_device_info_get_udn (info)))
     return;
@@ -54,14 +60,12 @@ device_available_cb (GUPnPControlPoint *cp,
   url = gupnp_device_info_get_presentation_url (info);
   if (!url)
     return;
-
-  EphyNode *node;
-
-  node = ephy_node_new (ephy_node_get_db (ephy_bookmarks_get_local (extension->priv->bookmarks)));
+  
+  node = ephy_node_new (ephy_node_get_db (priv->local));
   ephy_node_set_is_drag_source (node, FALSE);
   ephy_node_set_property_string (node, EPHY_NODE_BMK_PROP_LOCATION, url);
   g_free (url);
-
+  
   name = gupnp_device_info_get_friendly_name (info);
   ephy_node_set_property_string (node,
                                  EPHY_NODE_BMK_PROP_TITLE,
@@ -70,11 +74,10 @@ device_available_cb (GUPnPControlPoint *cp,
   ephy_node_set_property_boolean (node,
                                   EPHY_NODE_BMK_PROP_IMMUTABLE,
                                   TRUE);
-
- 
-  ephy_node_add_child (ephy_bookmarks_get_bookmarks (extension->priv->bookmarks), node);
-  ephy_node_add_child (ephy_bookmarks_get_local (extension->priv->bookmarks), node);
-
+  
+  ephy_node_add_child (priv->bookmarks, node);
+  ephy_node_add_child (priv->local, node);
+  
   g_hash_table_insert (priv->device_hash, g_strdup (gupnp_device_info_get_udn (info)), node);
 }
 
@@ -99,10 +102,22 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
   EphyShell *shell;
   
   priv = extension->priv = GET_PRIVATE (extension);
-  
+
   priv->device_hash = g_hash_table_new_full
     (g_str_hash, g_str_equal, g_free, (GDestroyNotify)ephy_node_unref);
-
+  
+  shell = ephy_shell_get_default ();
+  priv->eb = ephy_shell_get_bookmarks (shell);
+  priv->bookmarks = ephy_bookmarks_get_bookmarks (priv->eb);
+  priv->local = ephy_bookmarks_get_local (priv->eb);
+  
+  /* If Epiphany was built without Avahi then there is no Nearby Sites support,
+     so this plugin can't work. */
+  if (!priv->local) {
+    g_printerr ("ZeroConf support not enabled in Epiphany so no Nearby Sites support, sorry...\n");
+    return;
+  }
+  
   priv->context = gupnp_context_new (NULL, NULL, 0, NULL);
   priv->cp = gupnp_control_point_new (priv->context, GSSDP_ALL_RESOURCES);
 
@@ -116,9 +131,6 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
                     extension);
 
   gssdp_resource_browser_set_active (GSSDP_RESOURCE_BROWSER (priv->cp), TRUE);
-  
-  shell = ephy_shell_get_default ();
-  priv->bookmarks = ephy_shell_get_bookmarks (shell);
 }
 
 static void

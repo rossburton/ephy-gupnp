@@ -1,21 +1,17 @@
 /*
- *  Copyright © 2008 Ross Burton
+ * Copyright © 2008 Ross Burton
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2, or (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- *
- *  $Id: ephy-upnp-extension.c 1634 2007-11-04 01:24:04Z cyrilbois $
+ * You should have received a copy of the GNU General Public License along with
+ * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "ephy-upnp-extension.h"
@@ -36,13 +32,7 @@ struct _EphyUpnpExtensionPrivate {
   EphyBookmarks *bookmarks;
 };
 
-enum
-{
-	PROP_0
-};
-
 static GObjectClass *parent_class = NULL;
-
 static GType type = 0;
 
 static void
@@ -96,8 +86,6 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
   
   priv = extension->priv = GET_PRIVATE (extension);
   
-  g_printerr ("EphyUpnpExtension initialising\n");
-
   priv->device_hash = g_hash_table_new (g_str_hash, g_str_equal);
 
   priv->context = gupnp_context_new (NULL, NULL, 0, NULL);
@@ -116,14 +104,12 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
 static void
 ephy_upnp_extension_finalize (GObject *object)
 {
-	EphyUpnpExtension *extension = EPHY_UPNP_EXTENSION (object);
-
-	g_printerr ("EphyUpnpExtension finalising\n");
-
-        g_object_unref (extension->priv->cp);
-        g_object_unref (extension->priv->context);
-        
-	G_OBJECT_CLASS (parent_class)->finalize (object);
+  EphyUpnpExtension *extension = EPHY_UPNP_EXTENSION (object);
+  
+  g_object_unref (extension->priv->cp);
+  g_object_unref (extension->priv->context);
+  
+  G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
 static void
@@ -134,53 +120,51 @@ ephy_upnp_extension_iface_init (EphyExtensionIface *iface)
 static void
 ephy_upnp_extension_class_init (EphyUpnpExtensionClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-	parent_class = g_type_class_peek_parent (klass);
-
-	object_class->finalize = ephy_upnp_extension_finalize;
-
-	g_type_class_add_private (object_class, sizeof (EphyUpnpExtensionPrivate));
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  
+  parent_class = g_type_class_peek_parent (klass);
+  
+  object_class->finalize = ephy_upnp_extension_finalize;
+  
+  g_type_class_add_private (object_class, sizeof (EphyUpnpExtensionPrivate));
 }
 
 GType
 ephy_upnp_extension_get_type (void)
 {
-	return type;
+  return type;
 }
 
 GType
 ephy_upnp_extension_register_type (GTypeModule *module)
 {
-	const GTypeInfo our_info =
-	{
-		sizeof (EphyUpnpExtensionClass),
-		NULL, /* base_init */
-		NULL, /* base_finalize */
-		(GClassInitFunc) ephy_upnp_extension_class_init,
-		NULL,
-		NULL, /* class_data */
-		sizeof (EphyUpnpExtension),
-		0, /* n_preallocs */
-		(GInstanceInitFunc) ephy_upnp_extension_init
-	};
-
-	const GInterfaceInfo extension_info =
-	{
-		(GInterfaceInitFunc) ephy_upnp_extension_iface_init,
-		NULL,
-		NULL
-	};
-
-	type = g_type_module_register_type (module,
-					    G_TYPE_OBJECT,
-					    "EphyUpnpExtension",
-					    &our_info, 0);
-
-	g_type_module_add_interface (module,
-				     type,
-				     EPHY_TYPE_EXTENSION,
-				     &extension_info);
-
-	return type;
+  const GTypeInfo our_info = {
+    sizeof (EphyUpnpExtensionClass),
+    NULL, /* base_init */
+    NULL, /* base_finalize */
+    (GClassInitFunc) ephy_upnp_extension_class_init,
+    NULL,
+    NULL, /* class_data */
+    sizeof (EphyUpnpExtension),
+    0, /* n_preallocs */
+    (GInstanceInitFunc) ephy_upnp_extension_init
+  };
+  
+  const GInterfaceInfo extension_info = {
+    (GInterfaceInitFunc) ephy_upnp_extension_iface_init,
+    NULL,
+    NULL
+  };
+  
+  type = g_type_module_register_type (module,
+                                      G_TYPE_OBJECT,
+                                      "EphyUpnpExtension",
+                                      &our_info, 0);
+  
+  g_type_module_add_interface (module,
+                               type,
+                               EPHY_TYPE_EXTENSION,
+                               &extension_info);
+  
+  return type;
 }

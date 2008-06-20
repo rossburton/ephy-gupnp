@@ -123,7 +123,7 @@ ephy_upnp_extension_init (EphyUpnpExtension *extension)
   }
   
   priv->context = gupnp_context_new (NULL, NULL, 0, NULL);
-  priv->cp = gupnp_control_point_new (priv->context, GSSDP_ALL_RESOURCES);
+  priv->cp = gupnp_control_point_new (priv->context, "upnp:rootdevice");
 
   g_signal_connect (priv->cp,
                     "device-proxy-available",
